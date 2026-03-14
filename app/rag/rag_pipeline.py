@@ -1,5 +1,5 @@
 import fitz
-from app.preprocessing.text_preprocessor import make_sentence_chunks
+from app.preprocessing.text_preprocessor import semantic_chunk_text
 
 
 def extract_text_from_pdf(file_path: str) -> str:
@@ -12,5 +12,5 @@ def extract_text_from_pdf(file_path: str) -> str:
 
 def process_pdf(file_path: str) -> list[str]:
     raw_text = extract_text_from_pdf(file_path)
-    chunks = make_sentence_chunks(raw_text)
+    chunks = semantic_chunk_text(raw_text)
     return chunks

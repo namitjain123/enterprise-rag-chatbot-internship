@@ -4,19 +4,30 @@ import requests
 API_BASE = "http://127.0.0.1:8000"
 
 
-def handle_upload(file):
+def handle_upload(files):
     try:
-        with open(file.name, "rb") as f:
-            files = {"file": (file.name, f, "application/pdf")}
-            response = requests.post(f"{API_BASE}/ingest", files=files)
+        if not files:
+            return "No files uploaded."
 
-        if response.status_code == 200:
-            data = response.json()
-            return f"{data['message']} Chunks indexed: {data['chunks_indexed']}"
-        return f"Error: {response.text}"
+        uploaded_count = 0
+        total_chunks = 0
+
+        for file in files:
+            with open(file.name, "rb") as f:
+                file_data = {"files": (file.name, f, "application/pdf")}
+                response = requests.post(f"{API_BASE}/ingest", files=file_data)
+
+            if response.status_code == 200:
+                data = response.json()
+                uploaded_count += 1
+                total_chunks += data.get("chunks_indexed", 0)
+            else:
+                return f"Error uploading {file.name}: {response.text}"
+
+        return f"{uploaded_count} documents uploaded successfully. Total chunks indexed: {total_chunks}"
 
     except Exception as e:
-        return f"Error processing document: {str(e)}"
+        return f"Error processing documents: {str(e)}"
 
 
 def respond(message, chat_history):
@@ -54,7 +65,7 @@ with gr.Blocks() as demo:
     gr.Markdown("## Enterprise RAG Chatbot")
 
     with gr.Row():
-        file_upload = gr.File(label="Upload PDF Document", file_types=[".pdf"])
+        file_upload = gr.File(label="Upload PDF Documents", file_types=[".pdf"], file_count="multiple")
         upload_status = gr.Textbox(label="Upload Status", interactive=False)
 
     file_upload.change(

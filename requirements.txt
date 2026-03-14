@@ -9,3 +9,4 @@ gradio
 requests
 spacy
 python-multipart
+rank-bm25

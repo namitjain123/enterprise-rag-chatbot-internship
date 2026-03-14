@@ -1,4 +1,5 @@
 import chromadb
+import uuid
 from app.core.config import CHROMA_PATH, COLLECTION_NAME
 from app.rag.embeddings import embed_texts, embed_query
 
@@ -11,11 +12,7 @@ def index_chunks(chunks: list[str]) -> None:
         return
 
     embeddings = embed_texts(chunks)
-    ids = [f"doc_{i}" for i in range(len(chunks))]
-
-    existing = collection.get(include=[])
-    existing_count = len(existing["ids"]) if existing and "ids" in existing else 0
-    ids = [f"doc_{existing_count + i}" for i in range(len(chunks))]
+    ids = [str(uuid.uuid4()) for _ in chunks]
 
     collection.add(
         documents=chunks,
@@ -38,11 +35,8 @@ def query_chunks(query: str, top_k: int = 3) -> list[str]:
     return results["documents"][0]
 
 
-def reset_collection():
-    global collection
-    try:
-        client.delete_collection(COLLECTION_NAME)
-    except Exception:
-        pass
-
-    collection = client.get_or_create_collection(name=COLLECTION_NAME)
+def get_all_chunks() -> list[str]:
+    results = collection.get(include=["documents"])
+    if not results or "documents" not in results:
+        return []
+    return results["documents"]

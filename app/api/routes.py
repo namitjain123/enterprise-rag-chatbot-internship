@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from pydantic import BaseModel
 import os
 import tempfile
+from typing import List
 
 from app.rag.rag_pipeline import process_pdf
 from app.vectorstore.chroma_store import index_chunks
@@ -21,24 +22,32 @@ def health_check():
 
 
 @router.post("/ingest")
-async def ingest_pdf(file: UploadFile = File(...)):
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+async def ingest_pdfs(files: List[UploadFile] = File(...)):
+    total_chunks = 0
+    uploaded_files = []
 
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            temp_path = temp_file.name
+        for file in files:
+            if not file.filename.endswith(".pdf"):
+                raise HTTPException(status_code=400, detail=f"{file.filename} is not a PDF.")
 
-        chunks = process_pdf(temp_path)
-        index_chunks(chunks)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                content = await file.read()
+                temp_file.write(content)
+                temp_path = temp_file.name
 
-        os.remove(temp_path)
+            chunks = process_pdf(temp_path)
+            index_chunks(chunks)
+
+            total_chunks += len(chunks)
+            uploaded_files.append(file.filename)
+
+            os.remove(temp_path)
 
         return {
-            "message": "Document uploaded and indexed successfully.",
-            "chunks_indexed": len(chunks)
+            "message": "Documents uploaded and indexed successfully.",
+            "files_uploaded": uploaded_files,
+            "chunks_indexed": total_chunks
         }
 
     except Exception as e:
