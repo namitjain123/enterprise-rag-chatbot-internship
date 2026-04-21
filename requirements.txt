@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-dotenv
+sentence-transformers
+chromadb
+groq
+PyMuPDF
+gradio
+requests
+spacy
+python-multipart
+rank-bm25
