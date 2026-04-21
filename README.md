@@ -21,7 +21,7 @@ A document-based chatbot that uses Retrieval-Augmented Generation (RAG) to answe
 ![Upload Screenshot](images/Before_uploading.png)
 
 ### Response based on Question and PDF
-![Chat Screenshot](images/Chat_bot_Response.png)
+![Chat Screenshot](images/Chat_bot_Response1.png)
 ---
 
 ## Tech Stack
@@ -61,7 +61,7 @@ A document-based chatbot that uses Retrieval-Augmented Generation (RAG) to answe
 
 ## Workflow Diagram
 
-![Upload workflow](images/workflow.png)
+![Upload workflow](images/workflow1.png)
 
 ---
 
@@ -129,4 +129,4 @@ Future Improvements
 Author
 ------
 
-Eby Thomas 
+Namit Jain
