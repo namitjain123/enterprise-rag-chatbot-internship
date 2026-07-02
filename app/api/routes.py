@@ -6,7 +6,7 @@ from typing import List
 
 from app.rag.rag_pipeline import process_pdf
 from app.vectorstore.chroma_store import index_chunks
-from app.rag.retriever import generate_rag_answer
+from app.rag.guarded_pipeline import generate_guarded_answer
 
 router = APIRouter()
 
@@ -57,7 +57,7 @@ async def ingest_pdfs(files: List[UploadFile] = File(...)):
 @router.post("/query")
 def query_document(request: QueryRequest):
     try:
-        result = generate_rag_answer(request.question, request.top_k)
+        result = generate_guarded_answer(request.question, request.top_k)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -22,6 +22,8 @@ services:
       - "7860:7860"
     env_file:
       - .env
+    environment:
+      - API_BASE=http://backend:8000
     volumes:
       - .:/app
     command: python app/ui/ui_gradio.py

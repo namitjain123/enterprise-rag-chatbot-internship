@@ -22,6 +22,7 @@ def index_chunks(chunks: list[str]) -> None:
 
 
 def query_chunks(query: str, top_k: int = 3) -> list[str]:
+    ##converting the user query into an embedding vector
     query_embedding = embed_query(query)
 
     results = collection.query(

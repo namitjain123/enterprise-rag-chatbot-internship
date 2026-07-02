@@ -5,6 +5,7 @@ _reranker_model = None
 
 def get_reranker():
     global _reranker_model
+    #It simply returns the already loaded model.
     if _reranker_model is None:
         _reranker_model = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
     return _reranker_model
@@ -18,7 +19,7 @@ def rerank_chunks(query: str, chunks: list[str], top_n: int = 3) -> list[str]:
         return []
 
     model = get_reranker()
-
+  #Cross-encoder reranking reads the query and chunk together.
     pairs = [[query, chunk] for chunk in chunks]
     scores = model.predict(pairs)
 

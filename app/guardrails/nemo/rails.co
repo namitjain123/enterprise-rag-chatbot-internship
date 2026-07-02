@@ -1,0 +1,48 @@
+# Colang 1.0 — four-stage pipeline for the Enterprise RAG Chatbot.
+#
+# Stage 1  self check input    LLM #1  input rail  (NeMo built-in, custom prompt)
+# Stage 2  retrieve_context    no LLM  ChromaDB hybrid retrieve → rerank
+# Stage 3  generate_answer     LLM #2  Groq produces the grounded answer
+# Stage 4  scan_for_pii        no LLM  regex output rail
+
+# ── Canned messages ───────────────────────────────────────────────────────────
+
+define bot refuse to respond
+  "I can only answer questions about the uploaded HR policy documents. Please ask about leave, benefits, parental policy, or other topics covered in the indexed documents."
+
+define bot refuse pii response
+  "I've detected potentially sensitive personal information in my response and have blocked it for safety. Please ask about general policy content rather than specific individuals."
+
+# ── Stage 1: Input Rail — LLM #1 ─────────────────────────────────────────────
+# NeMo built-in flow. Sends the self_check_input prompt (prompts.yml) to the
+# guard LLM and parses its yes/no answer.
+# "yes" → bot refuse to respond → stop   (no further stages run)
+# "no"  → continue to Stage 2
+
+define flow self check input
+  $allowed = execute self_check_input
+  if not $allowed
+    bot refuse to respond
+    stop
+
+# ── Stages 2 + 3: Retrieval then Answer ──────────────────────────────────────
+# Catches every user message that passed Stage 1.
+#
+# Stage 2: retrieve_context — hybrid vector + BM25 search → rerank (no LLM)
+# Stage 3: generate_answer  — Groq LLM produces answer grounded in context (LLM #2)
+
+define flow answer hr question
+  user ...
+  $context = execute retrieve_context(query=$last_user_message)
+  $answer  = execute generate_answer(query=$last_user_message, retrieved_context=$context)
+  bot say $answer
+
+# ── Stage 4: Output Rail — regex PII scan, no LLM ────────────────────────────
+# Runs after Stage 3. scan_for_pii uses pure regex (no extra LLM call).
+# Detects SSNs, credit card numbers, emails, dollar salary figures.
+
+define flow check output for pii
+  $safe = execute scan_for_pii
+  if not $safe
+    bot refuse pii response
+    stop

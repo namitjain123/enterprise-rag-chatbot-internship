@@ -3,6 +3,7 @@ from app.vectorstore.chroma_store import get_all_chunks
 
 
 def keyword_search(query: str, top_k: int = 5) -> list[str]:
+    #So keyword search is useful when the exact words matter.
     chunks = get_all_chunks()
 
     if not chunks:

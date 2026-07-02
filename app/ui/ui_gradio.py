@@ -1,7 +1,17 @@
+import os
+import sys
+
+# Allow running this file directly (`python app/ui/ui_gradio.py`): put the project
+# root on sys.path so `import app...` resolves the same as `python -m`.
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
 import gradio as gr
 import requests
 
-API_BASE = "http://backend:8000"
+# Use http://backend:8000 inside Docker; falls back to localhost when run directly.
+API_BASE = os.getenv("API_BASE", "http://127.0.0.1:8000")
 
 
 def handle_upload(files):
@@ -47,6 +57,11 @@ def respond(message, chat_history):
         if response.status_code == 200:
             data = response.json()
             answer = data.get("answer", "No answer returned.")
+
+            # Surface the guardrail verdict so blocked messages are visible.
+            guard = data.get("guard")
+            if guard and guard.get("decision") == "BLOCK":
+                answer = f"🛡️ **Blocked by guardrail** ({guard.get('category')}): {answer}"
         else:
             answer = f"Error: {response.text}"
 
@@ -88,5 +103,8 @@ with gr.Blocks() as demo:
         outputs=[user_input, chatbot]
     )
 
+# Chatbot + guardrails UI on port 7860.
+# (RAGAS evaluation is a separate Streamlit app — run `streamlit run app/ui/eval_ui.py`
+#  on port 8501. The two apps are intentionally kept independent.)
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)

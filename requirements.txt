@@ -10,3 +10,23 @@ requests
 spacy
 python-multipart
 rank-bm25
+
+# RAGAS evaluation (judge LLM wired to Groq, embeddings via MiniLM)
+ragas==0.2.15
+langchain>=0.3,<0.4
+langchain-community>=0.3,<0.4
+langchain-groq
+langchain-huggingface
+datasets
+streamlit
+logfire
+
+# NeMo Guardrails (install with --no-deps then add individual deps below due to
+# annoy requiring C++ build tools on Windows — annoy is unused in our pipeline)
+nemoguardrails==0.22.0
+aiohttp
+aiohttp-retry
+dataclasses-json
+lark
+nest-asyncio
+simpleeval

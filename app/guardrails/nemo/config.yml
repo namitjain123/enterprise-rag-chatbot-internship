@@ -1,0 +1,32 @@
+# NeMo Guardrails configuration for the Enterprise RAG Chatbot.
+#
+# Pipeline (two LLM calls per allowed message):
+#   Stage 1 — Input Rail  (LLM call #1): self check input
+#   Stage 2 — RAG Answer  (LLM call #2): custom rag_answer action
+#   Stage 3 — Output Rail (no LLM, regex): scan_for_pii action
+#
+# The LLM is injected at runtime via LLMRails(config, llm=ChatGroq(...))
+# so the model entry below is a placeholder that gets overridden.
+
+models:
+  - type: main
+    engine: langchain
+    model: ChatGroq
+
+# Enable the built-in self check input/output flows.
+rails:
+  input:
+    flows:
+      - self check input
+  output:
+    flows:
+      - check output for pii
+
+# General context injected into every prompt so the LLM knows its role.
+instructions:
+  - type: general
+    content: |
+      You are an enterprise HR policy document assistant.
+      You ONLY answer questions about uploaded HR/policy PDF documents.
+      You do not engage in general conversation, share personal information
+      about individuals, or assist with anything outside the indexed documents.

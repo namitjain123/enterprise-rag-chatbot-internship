@@ -14,16 +14,8 @@ def generate_rag_answer(query: str, top_k: int = TOP_K) -> dict:
             "sources": []
         }
 
-    print("\n--- Hybrid Retrieved Chunks ---")
-    for i, chunk in enumerate(retrieved_chunks[:5], start=1):
-        print(f"{i}. {chunk[:200]}")
-
     # Step 2: rerank the combined candidates
     best_chunks = rerank_chunks(query, retrieved_chunks, top_n=top_k)
-
-    print("\n--- Reranked Best Chunks ---")
-    for i, chunk in enumerate(best_chunks, start=1):
-        print(f"{i}. {chunk[:200]}")
 
     # Step 3: final answer generation
     context = "\n\n".join(best_chunks)

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "g001",
+    "question": "How much annual leave is a worker entitled to each year?",
+    "ground_truth": "A worker is entitled to four weeks of annual leave each year in accordance with the National Employment Standards (NES), plus any additional leave under the applicable Industrial Instrument. Shift workers may be entitled to five weeks of annual leave each year.",
+    "target_metric": "faithfulness",
+    "metric_note": "Tests whether the answer stays grounded in the retrieved context and does not hallucinate extra entitlements."
+  },
+  {
+    "id": "g002",
+    "question": "What is the minimum notice requirement to take more than 4 weeks of annual leave?",
+    "ground_truth": "For a period of leave of over 4 weeks, the minimum notice requirement is 12 weeks.",
+    "target_metric": "context_precision",
+    "metric_note": "The answer is a single precise figure; tests whether the top-ranked chunks actually contain it."
+  },
+  {
+    "id": "g003",
+    "question": "How much paid compassionate or bereavement leave are full-time and part-time workers entitled to?",
+    "ground_truth": "Full-time and part-time workers are entitled to three days' paid compassionate/bereavement leave for each occasion when a member of their immediate family or household contracts a life-threatening illness, sustains a life-threatening injury, or dies.",
+    "target_metric": "context_recall",
+    "metric_note": "Ground truth spans multiple trigger conditions; tests whether retrieval surfaces all of them."
+  },
+  {
+    "id": "g004",
+    "question": "How many weeks of Paid Parental Leave does the Federal Government's PPL scheme provide?",
+    "ground_truth": "The Federal Government's Paid Parental Leave (PPL) scheme provides payment for up to 18 weeks at the national minimum wage rate.",
+    "target_metric": "faithfulness",
+    "metric_note": "A specific numeric claim easy to hallucinate; tests whether the answer matches the source exactly."
+  },
+  {
+    "id": "g005",
+    "question": "How much notice must a worker give before taking unpaid parental leave?",
+    "ground_truth": "A worker must give Able Australia at least ten weeks' prior notice of their intention to take unpaid parental leave.",
+    "target_metric": "context_precision",
+    "metric_note": "Single-fact answer; tests whether the retrieved chunk containing '10 weeks' ranks first."
+  },
+  {
+    "id": "g006",
+    "question": "How much unpaid parental leave are eligible employees entitled to under the NES?",
+    "ground_truth": "Employees with at least 12 months of continuous service are entitled to 52 weeks of unpaid parental leave, and may request an additional 52 weeks which can only be refused on reasonable business grounds.",
+    "target_metric": "context_recall",
+    "metric_note": "Ground truth has two parts (base + extension); tests whether retrieval captures both clauses."
+  },
+  {
+    "id": "g007",
+    "question": "How many days of paid study leave does Able Australia generally provide per semester?",
+    "ground_truth": "Able Australia generally provides two days of paid study leave per semester for examination preparation and attendance. Any leave beyond these two days must be taken as annual leave.",
+    "target_metric": "response_relevancy",
+    "metric_note": "Tests whether the answer directly addresses the question without padding or off-topic content."
+  },
+  {
+    "id": "g008",
+    "question": "What is the maximum amount of annual leave a worker can cash out in a 12 month period?",
+    "ground_truth": "A worker cannot cash out more than 2 weeks of annual leave each 12 months, and must retain at least 4 weeks of annual leave after the cash out.",
+    "target_metric": "faithfulness",
+    "metric_note": "Two-part constraint; tests faithfulness when the answer must include both the cap and the retention rule."
+  },
+  {
+    "id": "g009",
+    "question": "How many keeping in touch days may a worker on unpaid parental leave take?",
+    "ground_truth": "A worker on unpaid parental leave may take up to 10 keeping in touch days without breaking the continuity of their unpaid parental leave.",
+    "target_metric": "context_recall",
+    "metric_note": "Niche topic; tests whether the retriever surfaces the specific 'keeping in touch' clause."
+  },
+  {
+    "id": "g010",
+    "question": "Under the Dad and Partner Pay scheme, how much pay can a partner receive?",
+    "ground_truth": "Under the Dad and Partner Pay (DAPP) scheme, fathers and partners can receive up to 2 weeks' pay from the government at the national minimum wage.",
+    "target_metric": "response_relevancy",
+    "metric_note": "Tests whether the response focuses on the DAPP scheme specifically rather than general parental leave."
+  }
+]
