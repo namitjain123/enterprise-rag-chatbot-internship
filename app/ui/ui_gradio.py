@@ -45,35 +45,37 @@ def respond(message, chat_history):
         chat_history = []
 
     if not message or not message.strip():
-        return "", chat_history
+        yield "", chat_history
+        return
+
+    # Append placeholder so the assistant bubble appears immediately.
+    chat_history = chat_history + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": ""},
+    ]
+    yield "", chat_history
 
     try:
-        response = requests.post(
-            f"{API_BASE}/query",
-            json={"question": message, "top_k": 3},
-            timeout=60
-        )
-
-        if response.status_code == 200:
-            data = response.json()
-            answer = data.get("answer", "No answer returned.")
-
-            # Surface the guardrail verdict so blocked messages are visible.
-            guard = data.get("guard")
-            if guard and guard.get("decision") == "BLOCK":
-                answer = f"🛡️ **Blocked by guardrail** ({guard.get('category')}): {answer}"
-        else:
-            answer = f"Error: {response.text}"
-
-        # Messages format required by your Gradio version
-        chat_history.append({"role": "user", "content": message})
-        chat_history.append({"role": "assistant", "content": answer})
-
-        return "", chat_history
+        with requests.get(
+            f"{API_BASE}/query/stream",
+            params={"question": message},
+            stream=True,
+            timeout=60,
+        ) as r:
+            for raw_line in r.iter_lines():
+                if not raw_line:
+                    continue
+                # SSE lines look like: b"data: <token>"
+                if raw_line.startswith(b"data: "):
+                    token = raw_line[6:].decode("utf-8")
+                    if token == "[DONE]":
+                        break
+                    chat_history[-1]["content"] += token
+                    yield "", chat_history
 
     except Exception as e:
-        chat_history.append({"role": "assistant", "content": f"Error: {str(e)}"})
-        return "", chat_history
+        chat_history[-1]["content"] = f"Error: {str(e)}"
+        yield "", chat_history
 
 
 with gr.Blocks() as demo:
@@ -100,11 +102,17 @@ with gr.Blocks() as demo:
     send_btn.click(
         fn=respond,
         inputs=[user_input, chatbot],
-        outputs=[user_input, chatbot]
+        outputs=[user_input, chatbot],
+    )
+    user_input.submit(
+        fn=respond,
+        inputs=[user_input, chatbot],
+        outputs=[user_input, chatbot],
     )
 
 # Chatbot + guardrails UI on port 7860.
 # (RAGAS evaluation is a separate Streamlit app — run `streamlit run app/ui/eval_ui.py`
 #  on port 8501. The two apps are intentionally kept independent.)
 if __name__ == "__main__":
+    demo.queue()   # required for generator-based streaming to work
     demo.launch(server_name="0.0.0.0", server_port=7860)

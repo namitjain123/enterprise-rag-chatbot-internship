@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import os
 import tempfile
@@ -7,6 +8,7 @@ from typing import List
 from app.rag.rag_pipeline import process_pdf
 from app.vectorstore.chroma_store import index_chunks
 from app.rag.guarded_pipeline import generate_guarded_answer
+from app.core.config import GUARDRAILS_ENABLED
 
 router = APIRouter()
 
@@ -47,7 +49,7 @@ async def ingest_pdfs(files: List[UploadFile] = File(...)):
         return {
             "message": "Documents uploaded and indexed successfully.",
             "files_uploaded": uploaded_files,
-            "chunks_indexed": total_chunks
+            "chunks_indexed": total_chunks,
         }
 
     except Exception as e:
@@ -61,3 +63,23 @@ def query_document(request: QueryRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/query/stream")
+def query_stream(question: str):
+    """SSE endpoint — yields tokens as `data: <token>\\n\\n` so Gradio can stream them."""
+    def event_generator():
+        try:
+            if GUARDRAILS_ENABLED:
+                from app.guardrails.nemo_pipeline import generate_nemo_answer_stream
+                for token in generate_nemo_answer_stream(question):
+                    yield f"data: {token}\n\n"
+            else:
+                from app.rag.retriever import generate_rag_answer
+                result = generate_rag_answer(question)
+                yield f"data: {result['answer']}\n\n"
+        except Exception as e:
+            yield f"data: Error: {str(e)}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
